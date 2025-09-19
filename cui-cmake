@@ -1,0 +1,42 @@
+cmake_minimum_required(VERSION 3.30.5)
+
+project(cui VERSION 0.1.0 LANGUAGES C)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+file(GLOB_RECURSE lib_internal_source src/*.c)
+set(lib_include_dirs
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+# Function to set common properties
+function(set_cui_target_properties target)
+    target_include_directories(${target}
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+        PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+    set_target_properties(${target} PROPERTIES
+        C_STANDARD 99
+        C_STANDARD_REQUIRED YES
+        C_EXTENSIONS NO
+        OUTPUT_NAME cui
+    )
+    if(MSVC)
+        target_compile_options(${target} PRIVATE /W4 /WX)
+    else()
+        target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+    endif()
+endfunction()
+
+# Static library
+add_library(cui_static STATIC ${lib_internal_source})
+set_cui_target_properties(cui_static)
+
+# Shared library
+add_library(cui_shared SHARED ${lib_internal_source})
+set_cui_target_properties(cui_shared)
+
+# libcui tests
+enable_testing()
+add_subdirectory(tests)
